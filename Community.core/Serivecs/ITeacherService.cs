@@ -10,7 +10,7 @@ namespace Community.core.Serivecs
     public interface ITeacherService
     {
 
-        public Task< Teacher> GetTeacherByIdAsync(int id);
+        public Task< Teacher> GetTeacherByIdAsync( int id);
         public Task< Teacher> AddTeacherAsync(Teacher teacher);
         Task UpdateTeacherAsync(int id, Teacher teacher);
         Task DeleteTeacherAsync(int id);
