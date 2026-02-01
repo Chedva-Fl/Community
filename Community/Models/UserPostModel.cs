@@ -1,11 +1,11 @@
-﻿namespace Community.core.Models
+﻿namespace Community.Models
 {
-    public class User
+    public class UserPostModel
     {
         public int userId { get; set; }
         public String name { get; set; }
         public String phone { get; set; }
         public String email { get; set; }
-        public List<Teacher> Teachers { get; set; }
+
     }
 }

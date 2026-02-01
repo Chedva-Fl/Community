@@ -1,6 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Community.core.DTO;
+using Community.core.Models;
+using Community.core.Serivecs;
+using Community.Service;
+using Microsoft.AspNetCore.Mvc;
 
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace Community.Controllers
 {
@@ -8,36 +12,79 @@ namespace Community.Controllers
     [ApiController]
     public class TeacherController : ControllerBase
     {
-        // GET: api/<TeacherController>
+        private readonly ITeacherService _teacherService;
+        private readonly IMapper _mapper;
+
+        public TeacherController(ITeacherService teacherService, IMapper mapper)
+        {
+            _teacherService = teacherService;
+            _mapper = mapper;
+        }
+        // GET: api/<CoursesController>
         [HttpGet]
-        public IEnumerable<string> Get()
+        public async Task< ActionResult> Get()
         {
-            return new string[] { "value1", "value2" };
-        }
+            var teacher =await _teacherService.GetTeachersAsync();
 
-        // GET api/<TeacherController>/5
+            return Ok(_mapper.Map<List<TeacherDTO>>(teacher));
+        }
+        // GET api/<CoursesController>/5
         [HttpGet("{id}")]
-        public string Get(int id)
+        public async Task< ActionResult> Get(int id)
         {
-            return "value";
+            var t = await _teacherService.GetTeacherByIdAsync(id);
+            if (t != null)
+            {
+                var te = _mapper.Map<TeacherDTO>(t);
+                return Ok(te);
+            }
+            return NotFound();
         }
 
-        // POST api/<TeacherController>
+        // POST api/<CoursesController>
         [HttpPost]
-        public void Post([FromBody] string value)
+        public async Task< ActionResult >Post([FromBody] Teacher value)
         {
-        }
+            var teacher =await _teacherService.GetTeacherByIdAsync(value.teacherId);
+            if (teacher == null)
+            {
+                var student = _mapper.Map<Teacher>(value);
+                var t = await _teacherService.AddTeacherAsync(teacher);
+                return Ok(t);
+            }
 
-        // PUT api/<TeacherController>/5
+            return Conflict();
+
+
+        }
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        public async Task< ActionResult> Put(int id, [FromBody] Teacher value)
         {
+            var teacher = await _teacherService.GetTeacherByIdAsync(id);
+            if (teacher == null)
+            {
+                //נתון לויכוח  - האם להחזיר לא נמצא או להחזיר שגיאה בבקשה
+                return BadRequest();
+            }
+           await _teacherService.UpdateTeacherAsync(id, teacher);
+            return Ok();
+
         }
 
-        // DELETE api/<TeacherController>/5
+        // DELETE api/<StudentsController>/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public async Task< ActionResult> Delete(int id)
         {
+            var teacher = await _teacherService.GetTeacherByIdAsync(id);
+            if (teacher == null)
+            {
+                return BadRequest();
+            }
+
+           await _teacherService.DeleteTeacherAsync(id);
+            return Ok();
         }
     }
+
+
 }

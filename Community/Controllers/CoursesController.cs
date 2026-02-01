@@ -1,6 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Community.core.DTO;
+using Community.core.Models;
+using Community.core.Serivecs;
+using Microsoft.AspNetCore.Mvc;
 
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace Community.Controllers
 {
@@ -8,38 +11,75 @@ namespace Community.Controllers
     [ApiController]
     public class CoursesController : ControllerBase
     {
+        private readonly ICoursesService _coursesService;
+        private readonly IMapper _mapper;
+        public CoursesController(ICoursesService coursesService, IMapper mapper)
+        {
+            _coursesService = coursesService;
+            _mapper = mapper;
+        }
         // GET: api/<CoursesController>
         [HttpGet]
-        public IEnumerable<string> Get()
+        public async Task<ActionResult> Get()
         {
-            return new string[] { "value1", "value2" };
+            var course = await _coursesService.GetCoursesAsync();
+            return Ok(_mapper.Map<List<CoursesDTO>>(course));
         }
-
         // GET api/<CoursesController>/5
         [HttpGet("{id}")]
-        public string Get(int id)
+        public async Task<ActionResult> Get(int id)
         {
-            return "value";
+            var c = await _coursesService.GetCourseByIdAsync(id);
+            if (c != null)
+            {
+                var cu = _mapper.Map<CoursesDTO>(c);
+                return Ok(cu);
+            }
+            return NotFound();
         }
 
         // POST api/<CoursesController>
         [HttpPost]
-        public void Post([FromBody] string value)
+        public async Task<ActionResult> Post([FromBody] Courses value)
         {
-        }/*-
-
-        // PUT api/<CoursesController>/5
+            var course = await _coursesService.GetCourseByIdAsync(value.coursId);
+            if (course == null)
+            {
+                var corse = _mapper.Map<Courses>(value);
+                var c = await _coursesService.AddCourseAsync(corse);
+                return Ok(c);
+            }
+            return Conflict();
+        }
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        public async Task<ActionResult> Put(int id, [FromBody] Courses value)
         {
+            var course = await _coursesService.GetCourseByIdAsync(id);
+            if (course == null)
+            {
+                //נתון לויכוח  - האם להחזיר לא נמצא או להחזיר שגיאה בבקשה
+                return BadRequest();
+            }
+             await _coursesService.UpdateCourseAsync(id, course);
+            return Ok();
+
         }
 
-        // DELETE api/<CoursesController>/5
+        // DELETE api/<StudentsController>/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public async Task<ActionResult> DeleteAsync(int id)
         {
+            var course = await _coursesService.GetCourseByIdAsync(id);
+            if (course == null)
+            {
+                return BadRequest();
+            }
+
+            await _coursesService.DeleteCourseAsync(id);
+            return Ok();
         }
     }
+
 }
 
 
